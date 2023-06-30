@@ -17,7 +17,7 @@ public class Book {
     }
 
     public Book(String row) {
-        String[] sp = row.split(";");
+        String[] sp = row.split(",");
         this.name = sp[0];
         this.author = sp[1];
         this.rating = sp[2];
@@ -94,5 +94,18 @@ public class Book {
     @Override
     public int hashCode() {
         return Objects.hash(name, author, rating, reviews, price, year, genre);
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "name='" + name + '\'' +
+                ", author='" + author + '\'' +
+                ", rating='" + rating + '\'' +
+                ", reviews='" + reviews + '\'' +
+                ", price=" + price +
+                ", year=" + year +
+                ", genre='" + genre + '\'' +
+                '}';
     }
 }

@@ -23,6 +23,8 @@ public class Producer {
 	private static final Properties config = new Config(CONFIG_FILE_PATH).getConfig();
 
 	private static org.apache.kafka.clients.producer.Producer<String, Book> producer;
+	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
 
 	public static void main(String[] args) {
 
@@ -37,25 +39,16 @@ public class Producer {
 
 		producer = new KafkaProducer<>(props);
 
-		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-		executor.scheduleAtFixedRate(() ->
-						readAndSend(
-								config.getProperty("topic.name"),
-								config.getProperty("source.file.name")
-						),
-				0, 3, TimeUnit.SECONDS); // no blocking
-
+		readAndSend(config.getProperty("book.topic.name"), config.getProperty("source.file.name"));
 	}
 
 	private static void readAndSend(String topic, String file) {
-		try (Scanner scanner = new Scanner(new FileInputStream(file)).useDelimiter(System.lineSeparator())) {
+		try (Scanner scanner = new Scanner(new FileInputStream(file)).useDelimiter("\r")) {
+			if (scanner.hasNext()) scanner.next(); // skip first row
+
 			while (scanner.hasNext()) {
 				Book book = new Book(scanner.next());
-				ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-				executor.scheduleAtFixedRate(() -> send(config.getProperty("source.topic.name"), book),
-						0, 3, TimeUnit.SECONDS);
+				executor.scheduleAtFixedRate(() -> send(topic, book),	0, 3, TimeUnit.SECONDS);
 			}
 		} catch (IOException e) {
 			LOG.error("", e);
